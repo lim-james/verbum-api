@@ -1,40 +1,26 @@
 from fastapi import FastAPI
+from .bible import (
+    load_bible_from_csv,
+    parse_multiple_citations,
+    read_book,
+    read_citations
+)
 
 app = FastAPI()
+BIBLE_FLIEPATH = './assets/bible.csv'
+bible_data = load_bible_from_csv(BIBLE_FLIEPATH)
 
 @app.get('/')
 def get_root():
-    return {'Hello': 'World'}
+    return {'author': 'James Lim'}
 
-@app.get('/bible/{book}')
-def get_book(book):
-    return {'book': book}
+@app.get('/bible/{book_name}')
+def get_book(book_name):
+    return read_book(bible_data, book_name)
 
-def parse_possible_range(text):
-    if '-' in text:
-        return tuple(int(i) for i in text.split('-'))
-    else:
-        return int(text)
-
-def parse_verses(text):
-    return [parse_possible_range(t) for t in text.split(',')]
-
-def parse_citation(citation):
-    components = citation.split(':')
-    if len(components) == 1:
-        return {"chapters": parse_possible_range(components[0])}
-    else:
-        return {
-            "chapters": int(components[0]),
-            "verses": parse_verses(components[1])
-        }
-
-def parse_multiple_citations(citation):
-    return [parse_citation(book) for book in citation.split(';')]
-
-@app.get('/bible/{book}/{reference}')
-def get_chapter(book, reference):
-    return {
-        'book': book,
-        'citation': parse_multiple_citations(reference)
-    }
+@app.get('/bible/{book_name}/{reference}')
+def get_chapter(book_name, reference):
+    return read_citations(
+        read_book(bible_data, book_name),
+        parse_multiple_citations(reference)
+    )
