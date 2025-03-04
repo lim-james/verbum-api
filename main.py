@@ -14,13 +14,19 @@ bible_data = load_bible_from_csv(BIBLE_FLIEPATH)
 def get_root():
     return {'author': 'James Lim'}
 
+@app.get('/books')
+def get_books():
+    return { 'books': list(bible_data.keys()) }
+
 @app.get('/bible/{book_name}')
 def get_book(book_name):
-    return read_book(bible_data, book_name)
+    return { book_name: read_book(bible_data, book_name) }
 
 @app.get('/bible/{book_name}/{reference}')
 def get_chapter(book_name, reference):
-    return read_citations(
-        read_book(bible_data, book_name),
-        parse_multiple_citations(reference)
-    )
+    return {
+        book_name: read_citations(
+            read_book(bible_data, book_name),
+            parse_multiple_citations(reference)
+        )
+    }
